@@ -233,8 +233,8 @@ def agent_loop(messages):
 ### 新版 17 章主线
 
 ```sh
-git clone https://github.com/huuuboo/learn-claude-code
-cd learn-claude-code
+git clone https://github.com/w93139/harness-learn.git
+cd harness-learn
 
 # Mac 用户：双击「启动.command」即可（自动装依赖 + 首次引导填 DeepSeek key）
 # 或命令行方式：

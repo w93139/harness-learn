@@ -18,6 +18,7 @@ Mac 用户：双击「启动.command」即可（自动装依赖 + 引导填 key�
 """
 
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -25,6 +26,7 @@ from typing import Optional
 
 ROOT = Path(__file__).resolve().parent
 VENV_DIR = ROOT / ".venv"
+MIN_PYTHON = (3, 10)
 
 # (编号, 目录名, 标题, 说明)
 LESSONS = [
@@ -127,10 +129,37 @@ def venv_python() -> Path:
     return VENV_DIR / "bin" / "python"
 
 
+def python_version(executable: str) -> Optional[tuple[int, int]]:
+    """读取解释器版本；不可执行时返回 None。"""
+    try:
+        output = subprocess.check_output(
+            [executable, "-c", "import sys; print(sys.version_info[0], sys.version_info[1])"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+        major, minor = output.strip().split()
+        return int(major), int(minor)
+    except (OSError, subprocess.CalledProcessError, ValueError):
+        return None
+
+
+def find_compatible_python() -> Optional[str]:
+    """优先复用当前解释器，否则寻找已安装的 Python 3.10+。"""
+    candidates = [sys.executable]
+    for name in ("python3.13", "python3.12", "python3.11", "python3.10", "python3"):
+        path = shutil.which(name)
+        if path and path not in candidates:
+            candidates.append(path)
+    return next(
+        (path for path in candidates if (python_version(path) or (0, 0)) >= MIN_PYTHON),
+        None,
+    )
+
+
 def venv_ready() -> bool:
     """venv 存在且三个依赖都已装好。"""
     vp = venv_python()
-    if not vp.exists():
+    if not vp.exists() or (python_version(str(vp)) or (0, 0)) < MIN_PYTHON:
         return False
     ret = subprocess.call(
         [str(vp), "-c", "import anthropic, dotenv, yaml"],
@@ -185,11 +214,25 @@ def ensure_deps() -> bool:
     print(_yellow("\n[!] 首次运行：正在创建隔离环境并安装依赖（需联网，约 1 分钟）...\n"))
 
     vp = venv_python()
-    if not vp.exists():
-        ret = subprocess.call([sys.executable, "-m", "venv", str(VENV_DIR)])
+    current_version = python_version(str(vp)) if vp.exists() else None
+    if not vp.exists() or (current_version or (0, 0)) < MIN_PYTHON:
+        bootstrap_python = find_compatible_python()
+        if bootstrap_python is None:
+            print(_red("\n需要 Python 3.10 或更高版本，当前机器未找到兼容解释器。"))
+            print(_cyan("请先安装 Python 3.11：https://www.python.org/downloads/\n"))
+            return False
+        if current_version:
+            print(_yellow(
+                f"检测到旧虚拟环境 Python {current_version[0]}.{current_version[1]}，"
+                f"将使用 {bootstrap_python} 重建。"
+            ))
+        args = [bootstrap_python, "-m", "venv"]
+        if VENV_DIR.exists():
+            args.append("--clear")
+        ret = subprocess.call([*args, str(VENV_DIR)])
         if ret != 0 or not vp.exists():
             print(_red("\n创建环境失败。请手动执行下面命令后重试：\n"))
-            print(_cyan(f"  {sys.executable} -m venv .venv"))
+            print(_cyan(f"  {bootstrap_python} -m venv --clear .venv"))
             print(_cyan("  .venv/bin/python -m pip install -r requirements.txt"))
             print()
             return False
