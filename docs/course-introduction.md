@@ -1,0 +1,229 @@
+# 课程导言与旧版迁移
+
+## Agent 产品 = 模型 + Harness
+
+在讨论代码之前，先把一件事说清楚。
+
+**Agency -- 感知、推理、行动的能力 -- 来自模型训练，不是来自外部代码的编排。** 但一个能干活的 agent 产品，需要模型和 harness 缺一不可。模型是驾驶者，harness 是载具。本仓库教你造载具。
+
+### 心智转换：从 "开发 Agent" 到开发 Harness
+
+当一个人说 "我在开发 Agent" 时，他只可能是两个意思之一：
+
+**1. 训练模型。** 通过强化学习、微调、RLHF 或其他基于梯度的方法调整权重。收集任务过程数据 -- 真实领域中感知、推理、行动的实际序列 -- 用它们来塑造模型的行为。这是 DeepMind、OpenAI、腾讯 AI Lab、Anthropic 在做的事。这是最本义的 Agent 开发。
+
+**2. 构建 Harness。** 编写代码，为模型提供一个可操作的环境。这是我们大多数人在做的事，也是本仓库的核心。
+
+Harness 是 agent 在特定领域工作所需要的一切：
+
+```
+Harness = Tools + Knowledge + Observation + Action Interfaces + Permissions
+
+    Tools:          文件读写、Shell、网络、数据库、浏览器
+    Knowledge:      产品文档、领域资料、API 规范、风格指南
+    Observation:    git diff、错误日志、浏览器状态、传感器数据
+    Action:         CLI 命令、API 调用、UI 交互
+    Permissions:    沙箱隔离、审批流程、信任边界
+```
+
+模型做决策。Harness 执行。模型做推理。Harness 提供上下文。模型是驾驶者。Harness 是载具。
+
+**编程 agent 的 harness 是它的 IDE、终端和文件系统。** 农业 agent 的 harness 是传感器阵列、灌溉控制和气象数据。酒店 agent 的 harness 是预订系统、客户沟通渠道和设施管理 API。Agent -- 那个智能、那个决策者 -- 永远是模型。Harness 因领域而变。Agent 跨领域泛化。
+
+这个仓库教你造载具。编程用的载具。但设计模式可以泛化到任何领域：庄园管理、农田运营、酒店运作、工厂制造、物流调度、医疗保健、教育培训、科学研究。只要有一个任务需要被感知、推理和执行 -- agent 就需要一个 harness。
+
+### Harness 工程师到底在做什么
+
+如果你在读这个仓库，你很可能是一名 harness 工程师 -- 这是一个强大的身份。以下是你真正的工作：
+
+- **实现工具。** 给 agent 一双手。文件读写、Shell 执行、API 调用、浏览器控制、数据库查询。每个工具都是 agent 在环境中可以采取的一个行动。设计它们时要原子化、可组合、描述清晰。
+
+- **策划知识。** 给 agent 领域专长。产品文档、架构决策记录、风格指南、合规要求。按需加载（s07），不要前置塞入。Agent 应该知道有什么可用，然后自己拉取所需。
+
+- **管理上下文。** 子 Agent 把明确的工作留在另一份消息列表中；上下文压缩（s08）缩短较早的历史；任务系统（s10）让目标持久化到单次对话之外。
+
+- **控制权限。** 给 agent 边界。沙箱化文件访问。对破坏性操作要求审批。在 agent 和外部系统之间实施信任边界。这是安全工程与 harness 工程的交汇点。
+
+- **收集任务过程数据。** Agent 在你的 harness 中执行的每一条行动序列都是训练信号。真实部署中的感知-推理-行动轨迹是微调下一代 agent 模型的原材料。你的 harness 不仅服务于 agent -- 它还可以帮助进化 agent。
+
+你不是在编写智能。你是在构建智能栖居的世界。这个世界的质量 -- agent 能看得多清楚、行动得多精准、可用知识有多丰富 -- 直接决定了智能能多有效地表达自己。
+
+**造好 Harness。Agent 会完成剩下的。**
+
+### 为什么是 Claude Code -- Harness 工程的大师课
+
+为什么这个仓库专门拆解 Claude Code？
+
+因为 Claude Code 是我们所见过的最优雅、最完整的 agent harness 实现。不是因为某个巧妙的技巧，而是因为它 *没做* 的事：它没有试图成为 agent 本身。它没有强加僵化的工作流。它没有用精心设计的决策树去替模型做判断。它给模型提供了工具、知识、上下文管理和权限边界 -- 然后让开了。
+
+把 Claude Code 剥到本质来看：
+
+```
+Claude Code = 一个 agent loop
+            + 工具 (bash, read, write, edit, glob, grep, browser...)
+            + 按需 skill 加载
+            + 上下文压缩
+            + 子 agent 派生
+            + 带依赖图的任务系统
+            + 异步邮箱的团队协调
+            + 任务绑定的 worktree 并行执行
+            + 权限治理
+```
+
+就这些。这就是全部架构。每一个组件都是 harness 机制 -- 为 agent 构建的栖居世界的一部分。Agent 本身呢？是 Claude。一个模型。由 Anthropic 在人类推理和代码的全部广度上训练而成。Harness 没有让 Claude 变聪明。Claude 本来就聪明。Harness 给了 Claude 双手、双眼和一个工作空间。
+
+这就是 Claude Code 作为教学标本的意义：**它展示了当你信任模型、把工程精力集中在 harness 上时会发生什么。** 本仓库的课程（s01-s17）逐步拆解并重组 harness 机制。学完之后，你理解的不只是一个 coding agent 怎么工作，而是适用于不同领域的 harness 工程原则。
+
+启示不是 "复制 Claude Code"。启示是：**最好的 agent 产品，出自那些明白自己的工作是 harness 而非 intelligence 的工程师之手。**
+
+---
+
+## 愿景：用真正的 Agent 铺满宇宙
+
+这不只关乎编程 agent。
+
+每一个人类从事复杂、多步骤、需要判断力的工作的领域，都是 agent 可以运作的领域 -- 只要有对的 harness。本仓库中的模式是通用的：
+
+```
+庄园管理 agent  = 模型 + 物业传感器 + 维护工具 + 租户通信
+农业 agent      = 模型 + 土壤/气象数据 + 灌溉控制 + 作物知识
+酒店运营 agent  = 模型 + 预订系统 + 客户渠道 + 设施 API
+医学研究 agent  = 模型 + 文献检索 + 实验仪器 + 协议文档
+制造业 agent    = 模型 + 产线传感器 + 质量控制 + 物流系统
+教育 agent      = 模型 + 课程知识 + 学生进度 + 评估工具
+```
+
+循环永远不变。工具在变。知识在变。权限在变。Agent = 模型(LLM) + 泛化的操作环境(Harness)。
+
+每一个读这个仓库的 harness 工程师都在学习远超软件工程的模式。你在学习为一个智能的、自动化的未来构建基础设施。每一个部署在真实领域的好 harness，都是 agent 能够感知、推理、行动的又一个阵地。
+
+先铺满工作室。然后是农田、医院、工厂。然后是城市。然后是星球。
+
+**Bash is all you need. Real agents are all the universe needs.**
+
+---
+
+```
+                    THE AGENT PATTERN
+                    =================
+
+    User --> messages[] --> LLM --> response
+                                      |
+                              包含 tool_use block?
+                           /                          \
+                         yes                           no
+                          |                             |
+                    execute tools                    return text
+                    append results
+                    loop back -----------------> messages[]
+
+
+    这是最小循环。每个 AI Agent 都需要这个循环。
+    模型决定何时调用工具、何时停止。
+    代码只是执行模型的要求。
+    本仓库教你构建围绕这个循环的一切 --
+    让 agent 在特定领域高效工作的 harness。
+```
+
+**17 个递进式课程, 从简单循环到目标闭环。**
+**每个课程添加一个 harness 机制。每个机制有一句格言。**
+
+> **s01** &nbsp; *"One loop & Bash is all you need"* &mdash; 一个工具 + 一个循环 = 一个 Agent
+>
+> **s02** &nbsp; *"加一个工具, 只加一个 handler"* &mdash; 循环不用动, 新工具注册进 dispatch map 就行
+>
+> **s03** &nbsp; *"先划边界, 再给自由"* &mdash; 先判断操作能不能做，要不要问用户
+>
+> **s04** &nbsp; *"挂在循环上, 不写进循环里"* &mdash; 在工具前后留插口，不改主循环也能扩展
+>
+> **s05** &nbsp; *"没有计划的 agent 走哪算哪"* &mdash; 先列步骤再动手, 完成率翻倍
+>
+> **s06** &nbsp; 给子任务全新的 `messages[]`，最终文本作为一条工具结果返回
+>
+> **s07** &nbsp; *"用到时再加载, 别全塞 prompt 里"* &mdash; 技能先列目录，用到时再展开
+>
+> **s08** &nbsp; *"上下文总会满, 要有办法腾地方"* &mdash; 四步压缩，先整理工具结果，仍然超限时再生成历史摘要
+>
+> **s09** &nbsp; *"记住该记的, 忘掉该忘的"* &mdash; 三个子系统: 筛选、提取、整理
+>
+> **s10** &nbsp; *"大目标拆成小任务, 排好序, 持久化"* &mdash; 文件持久化的任务图, 多 agent 协作的基础
+>
+> **s11** &nbsp; *"慢操作丢后台, agent 继续思考"* &mdash; 后台线程跑命令, 完成后注入通知
+>
+> **s12** &nbsp; *"定时触发, 不需要人推"* &mdash; 按时间自动触发任务
+>
+> **s13** &nbsp; *"一个 Agent 顾不过来，就让队友分工协作"* &mdash; 持久队友协作、认领就绪任务，并使用任务绑定的工作目录
+>
+> **s14** &nbsp; *"能力不够? 插上 MCP"* &mdash; 把外部工具接进同一个工具池
+>
+> **s15** &nbsp; *"多种机制，一个循环"* &mdash; 集成示例用到的机制归到同一个 harness
+>
+> **s16** &nbsp; *"编排形状固定时，就把它写进代码"* &mdash; 保存好的 workflow 使用 journal 续跑
+>
+> **s17** &nbsp; *"目标决定循环什么时候真正结束"* &mdash; 每次准备停止时都由独立判断器审查；目标不可能、执行失败或超过续跑上限时把控制权交还用户
+
+---
+
+## 核心模式
+
+```python
+def agent_loop(messages):
+    while True:
+        response = client.messages.create(
+            model=MODEL, system=SYSTEM,
+            messages=messages, tools=TOOLS,
+        )
+        messages.append({"role": "assistant",
+                         "content": response.content})
+
+        tool_calls = [
+            block for block in response.content if block.type == "tool_use"
+        ]
+        if not tool_calls:
+            return
+
+        results = []
+        for block in tool_calls:
+            output = TOOL_HANDLERS[block.name](**block.input)
+            results.append({
+                "type": "tool_result",
+                "tool_use_id": block.id,
+                "content": output,
+            })
+        messages.append({"role": "user", "content": results})
+```
+
+每个课程围绕这个循环单独展开一个 harness 机制。s15 把累积的运行时接回一起；s16 和 s17 再分别聚焦 workflow 编排与目标收口。循环属于 agent，机制属于 harness。
+
+## 版本说明
+
+本仓库现在同时保留两条教程线：
+
+- **新版主线：根目录 `s01-s17`**
+  根目录下的 `s01_*` 到 `s17_*` 是新的主版本，也是当前推荐阅读路径。每章包含默认英文 README、中文/日文译本、可运行的 `code.py`，以及必要的图示。
+- **旧版过渡：`docs/`、`agents/`**
+  这些仍保留旧 12 章体系，暂时用于已有读者和旧链接过渡。
+
+新读者请从根目录 `s01_agent_loop/` 读到 `s17_goal_loop/`。旧版章节号和新版不完全一致，不要混用章节号。
+
+### 旧版到新版的对应关系
+
+| 旧 12 章版本 | 新 17 章版本 | 主题 |
+|---|---|---|
+| 旧 s01 | 新 s01 | Agent Loop |
+| 旧 s02 | 新 s02 | Tool Use |
+| 旧 s03 | 新 s05 | TodoWrite |
+| 旧 s04 | 新 s06 | Subagent |
+| 旧 s05 | 新 s07 | Skill Loading |
+| 旧 s06 | 新 s08 | Context Compact |
+| 旧 s07 | 新 s10 | Task System |
+| 旧 s08 | 新 s11 | Background Tasks |
+| 旧 s09 | 新 s13 | Agent Teams |
+| 旧 s10 | 新 s13 | Team Protocols |
+| 旧 s11 | 新 s13 | 自主认领任务 |
+| 旧 s12 | 新 s13 | 任务绑定的 Worktree |
+| 新版新增 | s03、s04、s09、s12、s14、s15、s16、s17 | Permission、Hooks、Memory、Cron、MCP、Agent Harness 集成、Workflow Runtime、Goal Loop |
+
+## 课程边界
+
+这是一个从 0 到 1 的 harness 工程课程。每章先单独展开一个机制，s15 再把累积的运行时接回完整的 Agent 循环。s16 在这个循环上加入 workflow 编排；s17 用更小的工具池单独讲目标控制的续跑，不是又一个累积式运行时。
